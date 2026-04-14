@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+body {
+    background-color: #121212;
+    color: #FFFFFF;
+    font-family: 'Manrope', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base utility classes for legacy support from HTML */
+@layer utilities {
+    .font-display { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace; }
+}
+
+/* Blinking cursor animation */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+.cursor-blink {
+    animation: blink 1s step-end infinite;
+}
+
+/* Hover border transition */
+.hover-border-primary {
+    transition: border-color 150ms ease;
+}
+.hover-border-primary:hover {
+    border-color: #00E5FF; /* primary */
+}
+
+/* Article card hover */
+.article-card {
+    transition: border-left-color 150ms ease;
+}
+.article-card:hover {
+    border-left-color: #00E5FF; /* primary */
+}
+.article-card:hover img {
+    transform: scale(1.02);
+}
+.article-img-wrapper {
+    overflow: hidden;
+}
+.article-img-wrapper img {
+    transition: transform 300ms ease;
+}
+
+/* Navigation links hover */
+.nav-link {
+    transition: color 150ms ease;
+}
+.nav-link:hover {
+    color: #FFFFFF;
+}
+
+/* Dark mode overrides for EasyMDE */
+.dark-editor .editor-toolbar {
+  border: none !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
+}
+.dark-editor .CodeMirror {
+  border: none !important;
+  background-color: transparent !important;
+  color: #e2e8f0 !important; /* колір тексту */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-size: 15px !important;
+  line-height: 1.625 !important;
+}
+.dark-editor .EasyMDEContainer .CodeMirror-focused {
+  box-shadow: none !important;
+  outline: none !important;
+}
+.dark-editor .editor-toolbar button {
+  color: #e2e8f0 !important;
+}
+.dark-editor .editor-toolbar button.active, .dark-editor .editor-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1) !important; /* purple-500/20 */
+}
+.dark-editor .editor-statusbar {
+  display: none;
+}
+.dark-editor .CodeMirror-cursor {
+  border-left-color: #e5e7eb !important;
+}
+
+/* Updated Prose & Code Block Styling from Skeleton */
+.code-block {
+    background-color: #0A0A0A;
+    border: 1px solid #2E2E2E;
+}
+.prose a {
+    color: #0ddbf2;
+    text-decoration: underline;
+    text-decoration-color: rgba(13, 219, 242, 0.3);
+    text-underline-offset: 4px;
+    transition: text-decoration-color 0.2s;
+}
+.prose a:hover {
+    text-decoration-color: #0ddbf2;
+}
+.prose h2, .prose h3 {
+    font-family: var(--font-space), 'Space Grotesk', sans-serif;
+    margin-top: 2.5em;
+    margin-bottom: 1em;
+    color: #FFFFFF;
+    font-weight: 700;
+}
+.prose h2 { font-size: 1.875rem; }
+.prose h3 { font-size: 1.5rem; }
+.prose p {
+    margin-bottom: 1.5em;
+    line-height: 1.7;
+}
+.prose ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+    margin-bottom: 1.5em;
+}
+.prose li {
+    margin-bottom: 0.5em;
+    line-height: 1.7;
+}
+.prose code:not(pre code) {
+    font-family: var(--font-geist-mono), 'Geist Mono', monospace;
+    background-color: #0A0A0A;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    border: 1px solid #2E2E2E;
+    font-size: 0.875em;
+    color: #0ddbf2;
+}
+
+/* Syntax highlighting colors */
+.token.keyword { color: #0ddbf2; }
+.token.string { color: #CCFF00; }
+.token.comment { color: #8A8F98; }
+.token.function { color: #FFFFFF; }
+.token.operator { color: #0ddbf2; }

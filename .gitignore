@@ -1,0 +1,18 @@
+# Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+.env
+
+# Database
+postgres_data/
+
+# Uploads
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db

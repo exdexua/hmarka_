@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: hmarka_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: cms_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./hmarka-backend
+    container_name: hmarka_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./hmarka-backend:/app
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secretpassword
+      - POSTGRES_DB=cms_db
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    depends_on:
+      - db
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./hmarka-frontend
+      dockerfile: Dockerfile.dev
+    container_name: hmarka_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./hmarka-frontend:/app
+      - /app/node_modules
+    environment:
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
