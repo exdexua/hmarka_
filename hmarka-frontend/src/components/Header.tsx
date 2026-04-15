@@ -15,10 +15,10 @@ export default function Header() {
         </Link>
         {/* Navigation (Desktop) */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="#">Windows</Link>
-          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="#">Linux</Link>
-          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="#">Docker</Link>
-          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="#">Мережі</Link>
+          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="/?category=windows">Windows</Link>
+          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="/?category=linux">Linux</Link>
+          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="/?category=docker">Docker</Link>
+          <Link className="nav-link text-text-muted text-sm font-medium font-mono uppercase tracking-wider" href="/?category=network">Мережі</Link>
         </nav>
         {/* Mobile Menu Toggle */}
         <button className="md:hidden text-text-muted hover:text-white transition-colors">

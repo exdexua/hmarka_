@@ -15,6 +15,22 @@ import schemas
 # Створюємо таблиці в БД автоматично (для мінімального сетапу)
 Base.metadata.create_all(bind=engine)
 
+def create_initial_user():
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        admin = db.query(models.User).filter(models.User.username == "admin").first()
+        if not admin:
+            admin_user = models.User(id=1, username="admin", password_hash="password")
+            db.add(admin_user)
+            db.commit()
+    except Exception as e:
+        print(f"Помилка створення початкового користувача: {e}")
+    finally:
+        db.close()
+
+create_initial_user()
+
 app = FastAPI(title="Headless CMS Backend")
 
 UPLOAD_DIR = "uploads"
@@ -71,6 +87,21 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
         
     db_post = models.Post(**post.model_dump())
     db.add(db_post)
+    db.commit()
+    db.refresh(db_post)
+    return db_post
+
+@app.put("/posts/{post_id}", response_model=schemas.PostResponse)
+def update_post(post_id: int, post_update: schemas.PostBase, db: Session = Depends(get_db)):
+    db_post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not db_post:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    # Оновлення полів
+    update_data = post_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_post, key, value)
+        
     db.commit()
     db.refresh(db_post)
     return db_post

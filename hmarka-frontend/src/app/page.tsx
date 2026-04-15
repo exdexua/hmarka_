@@ -3,11 +3,16 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PostCard, { Post } from '@/components/PostCard';
 
-async function getPosts(): Promise<Post[]> {
+async function getPosts(category?: string): Promise<Post[]> {
   try {
-    const res = await fetch('http://127.0.0.1:8000/posts/', { cache: 'no-store' });
+    const backendUrl = process.env.BACKEND_URL || 'http://backend:8000';
+    const url = category 
+      ? `${backendUrl}/posts/category/${category}`
+      : `${backendUrl}/posts/`;
+      
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
-      console.error('Failed to fetch posts');
+      console.error(`Failed to fetch posts ${category ? 'for category ' + category : ''}`);
       return [];
     }
     return res.json();
@@ -17,8 +22,14 @@ async function getPosts(): Promise<Post[]> {
   }
 }
 
-export default async function Home() {
-  const posts = await getPosts();
+export default async function Home(props: { searchParams: Promise<{ category?: string }> }) {
+  const searchParams = await props.searchParams;
+  const category = searchParams.category;
+  const posts = await getPosts(category);
+
+  const pageTitle = category 
+    ? `Публікації: ${category.charAt(0).toUpperCase() + category.slice(1)}`
+    : 'Останні публікації';
 
   return (
     <>
@@ -105,9 +116,9 @@ export default async function Home() {
             
             {/* Main Feed (8 columns) */}
             <div className="lg:col-span-8">
-              <h2 className="font-display text-2xl mb-8 flex items-center gap-2">
+            <h2 className="font-display text-2xl mb-8 flex items-center gap-2">
                 <span className="material-symbols-outlined text-text-muted" data-icon="article">article</span>
-                Останні публікації
+                {pageTitle}
               </h2>
               <div className="flex flex-col">
                 {posts.length > 0 ? (

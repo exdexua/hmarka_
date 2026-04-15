@@ -1,25 +1,23 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 import Footer from '@/components/Footer';
-import CodeBlock from '@/components/CodeBlock';
+import EditablePost from '@/components/EditablePost';
 
 interface Post {
   id: number;
   title: string;
   slug: string;
   content_markdown: string;
+  category?: string;
   status?: string;
   created_at: string;
 }
 
 async function getPost(slug: string): Promise<Post | null> {
   try {
-    const res = await fetch(`http://127.0.0.1:8000/posts/${slug}`, { cache: 'no-store' });
-    if (res.status === 404) {
-      return null;
-    }
+    const backendUrl = process.env.BACKEND_URL || 'http://backend:8000';
+    const res = await fetch(`${backendUrl}/posts/${slug}`, { cache: 'no-store' });
+    if (res.status === 404) return null;
     if (!res.ok) {
       console.error('Failed to fetch post');
       return null;
@@ -39,19 +37,12 @@ export default async function PostPage(props: { params: Promise<{ slug: string }
     notFound();
   }
 
-  const dateObj = new Date(post.created_at);
-  const formattedDate = isNaN(dateObj.getTime()) ? 'Невідома дата' : dateObj.toLocaleDateString('uk-UA', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  });
-
-  // Extract headings (H2 and H3) for dynamic TOC
+  // Extract headings (H2 and H3) for TOC - Server side for SEO and initial load
   const headings: Array<{ level: number, text: string, slugId: string }> = [];
   const regex = /^(##|###)\s+(.*)$/gm;
   let match;
   while ((match = regex.exec(post.content_markdown || '')) !== null) {
-    const level = match[1].length; // 2 for h2, 3 for h3
+    const level = match[1].length;
     const text = match[2];
     const slugId = text.toLowerCase().replace(/[^a-z0-9а-яєії]+/g, '-').replace(/(^-|-$)+/g, '');
     headings.push({ level, text, slugId });
@@ -66,93 +57,18 @@ export default async function PostPage(props: { params: Promise<{ slug: string }
             <span className="material-symbols-outlined text-xl">arrow_back</span>
             <span className="font-mono text-sm uppercase tracking-wider hidden sm:inline-block">До списку статей</span>
           </Link>
-          {/* Logo area */}
           <Link href="/" className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">cloud</span>
-            <span className="font-display font-bold text-lg tracking-tight">HMARKA<span className="text-primary">_</span></span>
+            <span className="font-display font-bold text-lg tracking-tight">HMARKA<span className="text-primary cursor-blink font-mono">_</span></span>
           </Link>
-          <div className="w-8"></div> {/* Spacer to balance header */}
+          <div className="w-8"></div>
         </div>
       </header>
 
       <main className="flex-1 w-full max-w-[1200px] mx-auto flex flex-col lg:flex-row relative">
-        {/* Main Content Area */}
-        <article className="flex-1 w-full max-w-[680px] mx-auto px-4 py-8 md:py-16 lg:px-0">
-          
-          {/* Breadcrumbs & Meta */}
-          <div className="mb-12">
-            <nav className="flex flex-wrap gap-2 text-sm font-mono text-text-muted mb-6 uppercase tracking-wide">
-              <Link href="/" className="hover:text-primary transition-colors">Головна</Link>
-              <span>/</span>
-              <span className="text-text-main truncate max-w-[200px] sm:max-w-none">Стаття</span>
-            </nav>
-            <h1 className="font-display text-4xl md:text-5xl lg:text-[48px] font-bold leading-tight mb-6 text-text-main">
-              {post.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm font-mono text-text-muted uppercase tracking-wider">
-              <time>{formattedDate}</time>
-              <span className="w-1 h-1 bg-border-color rounded-full"></span>
-              <span>Admin</span>
-              <span className="w-1 h-1 bg-border-color rounded-full"></span>
-              <span className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">schedule</span>
-                5 хв читання
-              </span>
-            </div>
-          </div>
+        <EditablePost post={post} />
 
-          {/* Article Body */}
-          <div className="prose prose-invert max-w-none text-lg">
-            <ReactMarkdown
-              rehypePlugins={[rehypeRaw]}
-              components={{
-                pre({ children }) {
-                  return <>{children}</>;
-                },
-                code({ className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  
-                  // If it's inline code or doesn't have a specific language, render normally
-                  if (!match && !className?.includes('language-')) {
-                    return <code className={className} {...props}>{children}</code>;
-                  }
-
-                  return (
-                    <CodeBlock 
-                      code={String(children).replace(/\n$/, '')} 
-                      language={match ? match[1] : 'bash'} 
-                    />
-                  );
-                },
-                h2({ children, ...props }) {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9а-яєії]+/g, '-').replace(/(^-|-$)+/g, '');
-                  return <h2 id={id} {...props}>{children}</h2>;
-                },
-                h3({ children, ...props }) {
-                  const id = String(children).toLowerCase().replace(/[^a-z0-9а-яєії]+/g, '-').replace(/(^-|-$)+/g, '');
-                  return <h3 id={id} {...props}>{children}</h3>;
-                },
-                img({ node, ...props }: any) {
-                  const align = props['data-align'] || 'left';
-                  let alignClass = 'inline-block';
-                  if (align === 'center') alignClass = 'mx-auto block';
-                  if (align === 'right') alignClass = 'ml-auto block';
-                  return <img className={`max-w-full h-auto rounded-md ${alignClass}`} {...props} />;
-                }
-              }}
-            >
-              {post.content_markdown}
-            </ReactMarkdown>
-          </div>
-
-          {/* Article Footer Tags */}
-          <div className="mt-16 pt-8 border-t border-border-color flex flex-wrap gap-2">
-            <a href="#" className="px-3 py-1 bg-surface border border-border-color rounded-sm font-mono text-xs text-text-muted hover:text-primary hover:border-primary transition-colors">DOCKER</a>
-            <a href="#" className="px-3 py-1 bg-surface border border-border-color rounded-sm font-mono text-xs text-text-muted hover:text-primary hover:border-primary transition-colors">DEVOPS</a>
-          </div>
-        </article>
-
-        {/* Right Sidebar (Table of Contents) - Hidden on mobile/tablet */}
+        {/* Right Sidebar (Table of Contents) */}
         <aside className="hidden lg:block w-[250px] shrink-0 pt-16 pb-8 pl-8">
           <div className="sticky top-24">
             <h4 className="font-mono text-xs uppercase tracking-widest text-text-muted mb-4 border-l-2 border-transparent pl-3">Навігація</h4>
@@ -181,6 +97,7 @@ export default async function PostPage(props: { params: Promise<{ slug: string }
           </div>
         </aside>
       </main>
+      <Footer />
     </div>
   );
 }

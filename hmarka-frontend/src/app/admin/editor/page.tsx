@@ -11,43 +11,10 @@ import TextAlign from '@tiptap/extension-text-align';
 import CodeBlock from '@tiptap/extension-code-block';
 import { Markdown } from 'tiptap-markdown';
 import EditorToolbar from '@/components/EditorToolbar';
-import ResizableImageNode from '@/components/editor/ResizableImageNode';
-import CodeBlockNode from '@/components/editor/CodeBlockNode';
+import { ResizableImage, CustomCodeBlock } from '@/components/editor/TiptapExtensions';
+import { CATEGORIES, slugify } from '@/utils/slugify'; // Assuming I move these too or keep them for now. Let's just import extensions first.
 
-// Extend the image extension to allow width attribute for resizing
-const ResizableImage = Image.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      width: {
-        default: null,
-        parseHTML: element => element.getAttribute('width'),
-        renderHTML: attributes => {
-          if (!attributes.width) return {};
-          return { width: attributes.width };
-        }
-      },
-      align: {
-        default: 'left',
-        parseHTML: element => element.getAttribute('data-align') || 'left',
-        renderHTML: attributes => {
-          if (!attributes.align || attributes.align === 'left') return {};
-          return { 'data-align': attributes.align };
-        }
-      }
-    };
-  },
-  addNodeView() {
-    return ReactNodeViewRenderer(ResizableImageNode);
-  }
-});
-
-// Extend CodeBlock to use our interactive frontend component layout
-const CustomCodeBlock = CodeBlock.extend({
-  addNodeView() {
-    return ReactNodeViewRenderer(CodeBlockNode);
-  }
-});
+// Removed local extensions, now using shared ones.
 
 // Cyrillic-to-Latin transliteration map
 const CYR_TO_LAT: Record<string, string> = {
@@ -131,7 +98,8 @@ export default function EditorPage() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const res = await fetch('http://127.0.0.1:8000/upload/', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const res = await fetch(`${backendUrl}/upload/`, {
         method: 'POST',
         body: formData
       });
@@ -181,7 +149,8 @@ export default function EditorPage() {
     const finalContent = editor ? editor.storage.markdown.getMarkdown() : contentMarkdown;
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/posts/', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const res = await fetch(`${backendUrl}/posts/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
