@@ -49,17 +49,47 @@ const CustomCodeBlock = CodeBlock.extend({
   }
 });
 
+// Cyrillic-to-Latin transliteration map
+const CYR_TO_LAT: Record<string, string> = {
+  'а':'a','б':'b','в':'v','г':'h','ґ':'g','д':'d','е':'e','є':'ye',
+  'ж':'zh','з':'z','и':'y','і':'i','ї':'yi','й':'y','к':'k','л':'l',
+  'м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u',
+  'ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ь':'',
+  'ю':'yu','я':'ya','ё':'yo','ъ':'','э':'e','ы':'y',
+};
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .split('')
+    .map(ch => CYR_TO_LAT[ch] ?? ch)
+    .join('')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+}
+
+const CATEGORIES = ['Windows', 'Linux', 'Docker', 'Network', 'General'] as const;
+
 export default function EditorPage() {
   const router = useRouter();
   
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [category, setCategory] = useState<string>('General');
   const [contentMarkdown, setContentMarkdown] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-generate slug from title unless manually edited
+  useEffect(() => {
+    if (!slugManuallyEdited) {
+      setSlug(slugify(title));
+    }
+  }, [title, slugManuallyEdited]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -159,6 +189,7 @@ export default function EditorPage() {
         body: JSON.stringify({
           title,
           slug,
+          category,
           content_markdown: finalContent,
           status: 'published',
           author_id: 1, // Hardcoded
@@ -179,18 +210,12 @@ export default function EditorPage() {
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    if (!slug || slug === generateSlug(title)) {
-      setSlug(generateSlug(newTitle));
-    }
+    setTitle(e.target.value);
   };
 
-  const generateSlug = (text: string) => {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9а-яєії]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSlugManuallyEdited(true);
+    setSlug(e.target.value);
   };
 
   return (
@@ -247,11 +272,27 @@ export default function EditorPage() {
                 id="slug"
                 type="text"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={handleSlugChange}
                 placeholder="my-awesome-post"
                 className="w-full px-5 py-3.5 rounded-xl bg-gray-950/80 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 placeholder-gray-600 font-mono text-sm shadow-inner"
                 required
               />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="category" className="block text-sm font-semibold text-gray-300">
+                Категорія
+              </label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-5 py-3.5 rounded-xl bg-gray-950/80 border border-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 shadow-inner appearance-none cursor-pointer"
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat} className="bg-gray-900 text-gray-100">{cat}</option>
+                ))}
+              </select>
             </div>
           </div>
 

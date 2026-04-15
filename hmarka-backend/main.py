@@ -80,6 +80,11 @@ def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     posts = db.query(models.Post).offset(skip).limit(limit).all()
     return posts
 
+@app.get("/posts/category/{category_name}", response_model=List[schemas.PostResponse])
+def read_posts_by_category(category_name: str, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    posts = db.query(models.Post).filter(models.Post.category == category_name).offset(skip).limit(limit).all()
+    return posts
+
 @app.get("/posts/{slug}", response_model=schemas.PostResponse)
 def read_post(slug: str, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.slug == slug).first()

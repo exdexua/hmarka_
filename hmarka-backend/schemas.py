@@ -6,6 +6,7 @@ class PostBase(BaseModel):
     title: str
     slug: str
     content_markdown: str
+    category: Optional[str] = "General"
     status: Optional[str] = "draft"
 
 class PostCreate(PostBase):

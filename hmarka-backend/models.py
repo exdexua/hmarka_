@@ -34,6 +34,7 @@ class Post(Base):
     title = Column(String, nullable=False)
     slug = Column(String, unique=True, index=True, nullable=False)
     content_markdown = Column(Text, nullable=False)
+    category = Column(String, default="General", nullable=False)
     status = Column(String, default="draft", nullable=False)
     author_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
