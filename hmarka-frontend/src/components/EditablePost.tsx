@@ -8,6 +8,7 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { Markdown } from 'tiptap-markdown';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import EditorToolbar from '@/components/EditorToolbar';
 import { ResizableImage, CustomCodeBlock } from '@/components/editor/TiptapExtensions';
 import { CATEGORIES } from '@/utils/slugify';
@@ -66,7 +67,8 @@ export default function EditablePost({ post: initialPost }: { post: Post }) {
     setLoading(true);
     setError(null);
 
-    const updatedContent = editor.storage.markdown.getMarkdown();
+    // @ts-ignore: Tiptap doesn't type the markdown storage correctly internally
+    const updatedContent = (editor.storage.markdown as any).getMarkdown();
 
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
@@ -157,7 +159,7 @@ export default function EditablePost({ post: initialPost }: { post: Post }) {
           />
           <div className="p-4 md:p-8">
              {editor && (
-                <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} shouldShow={({ editor }) => editor.isActive('image')}>
+                <BubbleMenu editor={editor} shouldShow={({ editor }) => editor.isActive('image')}>
                   <div className="flex items-center gap-1 p-2 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
                     <button type="button" onClick={() => editor.chain().focus().updateAttributes('image', { width: '25%' }).run()} className="px-3 py-1 text-xs hover:bg-gray-700 text-gray-200 rounded">25%</button>
                     <button type="button" onClick={() => editor.chain().focus().updateAttributes('image', { width: '50%' }).run()} className="px-3 py-1 text-xs hover:bg-gray-700 text-gray-200 rounded">50%</button>
@@ -232,6 +234,7 @@ export default function EditablePost({ post: initialPost }: { post: Post }) {
 
       <div className="prose prose-invert max-w-none text-lg">
         <ReactMarkdown
+          rehypePlugins={[rehypeRaw]}
           components={{
             pre({ children }) { return <>{children}</>; },
             code({ className, children, ...props }) {
@@ -250,11 +253,26 @@ export default function EditablePost({ post: initialPost }: { post: Post }) {
               return <h3 id={id} {...props}>{children}</h3>;
             },
             img({ node, ...props }: any) {
-              const align = props['data-align'] || 'left';
-              let alignClass = 'inline-block';
-              if (align === 'center') alignClass = 'mx-auto block';
-              if (align === 'right') alignClass = 'ml-auto block';
-              return <img className={`max-w-full h-auto rounded-md ${alignClass}`} {...props} />;
+              const align = props['data-align'] || props.align || 'left';
+              const width = props.width || 'auto';
+              
+              let justifyClass = 'justify-start';
+              if (align === 'center') justifyClass = 'justify-center';
+              if (align === 'right') justifyClass = 'justify-end';
+              
+              return (
+                <div className={`w-full flex ${justifyClass} py-4`} data-image-wrapper>
+                  <img 
+                    {...props} 
+                    className="h-auto rounded-md block" 
+                    style={{ 
+                      width: width,
+                      minWidth: width !== 'auto' ? width : undefined,
+                      maxWidth: width !== 'auto' ? width : '100%'
+                    }}
+                  />
+                </div>
+              );
             }
           }}
         >

@@ -16,27 +16,6 @@ import { CATEGORIES, slugify } from '@/utils/slugify'; // Assuming I move these 
 
 // Removed local extensions, now using shared ones.
 
-// Cyrillic-to-Latin transliteration map
-const CYR_TO_LAT: Record<string, string> = {
-  'а':'a','б':'b','в':'v','г':'h','ґ':'g','д':'d','е':'e','є':'ye',
-  'ж':'zh','з':'z','и':'y','і':'i','ї':'yi','й':'y','к':'k','л':'l',
-  'м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u',
-  'ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ь':'',
-  'ю':'yu','я':'ya','ё':'yo','ъ':'','э':'e','ы':'y',
-};
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .split('')
-    .map(ch => CYR_TO_LAT[ch] ?? ch)
-    .join('')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
-}
-
-const CATEGORIES = ['Windows', 'Linux', 'Docker', 'Network', 'General'] as const;
-
 export default function EditorPage() {
   const router = useRouter();
   
@@ -81,7 +60,8 @@ export default function EditorPage() {
     ],
     content: contentMarkdown,
     onUpdate: ({ editor }) => {
-      setContentMarkdown(editor.storage.markdown.getMarkdown());
+      // @ts-ignore
+      setContentMarkdown((editor.storage.markdown as any).getMarkdown());
     },
     editorProps: {
       attributes: {
@@ -146,7 +126,8 @@ export default function EditorPage() {
     setLoading(true);
     setError(null);
 
-    const finalContent = editor ? editor.storage.markdown.getMarkdown() : contentMarkdown;
+    // @ts-ignore
+    const finalContent = editor ? (editor.storage.markdown as any).getMarkdown() : contentMarkdown;
 
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
@@ -281,7 +262,7 @@ export default function EditorPage() {
             <div className={`flex flex-col bg-gray-950/80 border border-gray-700 rounded-xl overflow-hidden shadow-inner focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:border-purple-500 transition-all duration-300 ${isFullscreen ? 'grow' : ''}`}>
               
               {editor && (
-                <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} shouldShow={({ editor }) => editor.isActive('image')}>
+                <BubbleMenu editor={editor} shouldShow={({ editor }) => editor.isActive('image')}>
                   <div className="flex items-center gap-1 p-2 bg-gray-800 rounded-lg shadow-xl shadow-black/50 border border-gray-700">
                     <button type="button" onClick={() => editor.chain().focus().updateAttributes('image', { width: '25%' }).run()} className="px-3 py-1 text-xs hover:bg-gray-700 text-gray-200 rounded">25%</button>
                     <button type="button" onClick={() => editor.chain().focus().updateAttributes('image', { width: '50%' }).run()} className="px-3 py-1 text-xs hover:bg-gray-700 text-gray-200 rounded">50%</button>

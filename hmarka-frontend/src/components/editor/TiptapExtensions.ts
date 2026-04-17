@@ -21,8 +21,27 @@ export const ResizableImage = Image.extend({
         default: 'left',
         parseHTML: element => element.getAttribute('data-align') || 'left',
         renderHTML: attributes => {
-          if (!attributes.align || attributes.align === 'left') return {};
           return { 'data-align': attributes.align };
+        }
+      }
+    };
+  },
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: any, node: any) {
+          const align = node.attrs.align || 'left';
+          const width = node.attrs.width || 'auto';
+          const src = node.attrs.src;
+          const alt = node.attrs.alt || '';
+          const title = node.attrs.title || '';
+          
+          if (width !== 'auto' || align !== 'left') {
+            const titleAttr = title ? ` title="${title}"` : '';
+            state.write(`<img src="${src}" alt="${alt}" width="${width}" data-align="${align}"${titleAttr}>`);
+          } else {
+            state.write(`![${alt}](${src}${title ? ` "${title}"` : ''})`);
+          }
         }
       }
     };

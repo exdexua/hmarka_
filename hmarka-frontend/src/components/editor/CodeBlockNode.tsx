@@ -23,7 +23,7 @@ export default function CodeBlockNode({ node }: any) {
       {/* Code Input Area */}
       <div className="p-4 overflow-x-auto bg-[#0A0A0A] w-full min-w-full">
         <pre className="font-mono text-[14px] leading-relaxed m-0 text-gray-300 block">
-          <NodeViewContent as="code" className={`language-${language} outline-none border-none min-w-full block`} />
+          <NodeViewContent as={"code" as any} className={`language-${language} outline-none border-none min-w-full block`} />
         </pre>
       </div>
     </NodeViewWrapper>

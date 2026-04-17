@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 export interface Post {
   id: number;
@@ -31,13 +32,15 @@ export default function PostCard({ post }: { post: Post }) {
         </h3>
         <div className="text-text-muted text-base leading-relaxed mb-4 line-clamp-3">
           <ReactMarkdown
+            rehypePlugins={[rehypeRaw]}
             components={{
               h1: ({node, ...props}) => <span className="block font-bold text-white mt-2 mb-1" {...props} />,
               h2: ({node, ...props}) => <span className="block font-bold text-white mt-2 mb-1" {...props} />,
               h3: ({node, ...props}) => <span className="block font-bold text-white mt-2 mb-1" {...props} />,
               p: ({node, ...props}) => <span className="block mb-2 text-text-muted" {...props} />,
               ul: ({node, ...props}) => <ul className="list-disc list-inside text-text-muted mb-2" {...props} />,
-              a: ({node, href, ...props}) => <span className="text-primary hover:text-white" {...props} />
+              a: ({node, href, ...props}) => <span className="text-primary hover:text-white" {...props} />,
+              img: () => null
             }}
           >
             {post.content_markdown || 'Немає опису...'}

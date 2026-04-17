@@ -41,12 +41,13 @@ export default function ResizableImageNode(props: any) {
   }, [initWidth, initMouseX, updateAttributes]);
 
   const align = node.attrs.align || 'left';
-  let alignClass = 'inline-block';
-  if (align === 'center') alignClass = 'mx-auto block';
-  if (align === 'right') alignClass = 'ml-auto block';
+  let justifyClass = 'justify-start';
+  if (align === 'center') justifyClass = 'justify-center';
+  if (align === 'right') justifyClass = 'justify-end';
 
   return (
-    <NodeViewWrapper className={`relative max-w-full ${alignClass} ${selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-gray-950' : ''}`}>
+    <NodeViewWrapper className={`relative w-full flex ${justifyClass} py-4 ${selected ? 'z-20' : 'z-10'}`}>
+      <div className={`relative ${selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-gray-950 rounded-sm' : ''}`}>
       <img
         ref={imageRef}
         src={node.attrs.src}
@@ -65,6 +66,7 @@ export default function ResizableImageNode(props: any) {
           onMouseDown={startDrag}
         />
       )}
+      </div>
     </NodeViewWrapper>
   );
 }
